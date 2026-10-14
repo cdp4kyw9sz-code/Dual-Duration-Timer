@@ -15,7 +15,7 @@
       --bg-base: #0b1120;
       --bg-surface: #151f32;
       --bg-elevated: #1e293b;
-      --border-subtle: rgba(148, 163, 184, 0.16);
+      --border-subtle: rgba(148, 163, 184, 0.18);
       --text-primary: #f8fafc;
       --text-secondary: #94a3b8;
       --text-muted: #64748b;
@@ -85,21 +85,21 @@
 
     /* Top Status & Mode Bar */
     .top-bar {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 8px 12px;
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border-subtle);
-      gap: 6px;
+      gap: 10px;
       flex-shrink: 0;
-      z-index: 10;
+      z-index: 30;
     }
 
     .brand-group {
       display: flex;
       align-items: center;
-      gap: 8px;
       min-width: 0;
     }
 
@@ -107,7 +107,7 @@
       display: inline-flex;
       background: var(--bg-base);
       padding: 3px;
-      border-radius: 9px;
+      border-radius: 10px;
       border: 1px solid var(--border-subtle);
     }
 
@@ -115,10 +115,10 @@
       background: transparent;
       color: var(--text-secondary);
       border: none;
-      padding: 5px 10px;
-      font-size: 12px;
+      padding: 6px 14px;
+      font-size: 13px;
       font-weight: 600;
-      border-radius: 6px;
+      border-radius: 7px;
       cursor: pointer;
       transition: all 0.15s ease;
       white-space: nowrap;
@@ -127,29 +127,31 @@
     .mode-btn.active {
       background: var(--bg-elevated);
       color: var(--text-primary);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.35);
     }
 
     .top-actions {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      position: relative;
     }
 
     .icon-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 5px;
       background: var(--bg-elevated);
       color: var(--text-primary);
       border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 6px 9px;
-      font-size: 12px;
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.1s ease, background 0.15s ease;
+      white-space: nowrap;
     }
 
     .icon-btn:active {
@@ -160,6 +162,104 @@
       border-color: var(--ch-a-border);
       color: var(--ch-a-accent);
       background: rgba(20, 184, 166, 0.12);
+    }
+
+    .dots-btn {
+      width: 38px;
+      height: 34px;
+      padding: 0;
+      font-size: 18px;
+      letter-spacing: 1px;
+      line-height: 1;
+    }
+
+    /* Three-Dots Dropdown Menu */
+    .menu-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: none;
+    }
+
+    .menu-backdrop.open {
+      display: block;
+    }
+
+    .dots-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 12px;
+      width: 252px;
+      background: var(--bg-surface);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 14px;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55);
+      padding: 6px;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 50;
+      transform-origin: top right;
+      animation: menuPop 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .dots-menu.open {
+      display: flex;
+    }
+
+    @keyframes menuPop {
+      from { opacity: 0; transform: scale(0.94); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      padding: 11px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    .menu-item:active, .menu-item:hover {
+      background: var(--bg-elevated);
+    }
+
+    .menu-item-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .menu-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--bg-base);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .menu-badge.highlight {
+      background: var(--ch-a-badge);
+      color: var(--ch-a-accent);
+      border-color: rgba(45, 212, 191, 0.4);
+    }
+
+    .menu-divider {
+      height: 1px;
+      background: var(--border-subtle);
+      margin: 3px 6px;
     }
 
     /* Main Split Timer Arena */
@@ -178,11 +278,14 @@
       }
       .center-dock {
         flex-direction: column !important;
-        width: 126px;
+        width: 136px;
         justify-content: center;
       }
       .session-pill-row {
-        flex-direction: column !important;
+        grid-template-columns: 1fr !important;
+      }
+      .dock-controls {
+        grid-template-columns: 1fr !important;
       }
     }
 
@@ -288,7 +391,7 @@
       border: 1px solid rgba(255, 255, 255, 0.12);
       color: var(--text-secondary);
       border-radius: 6px;
-      padding: 3px 7px;
+      padding: 3px 8px;
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
@@ -300,7 +403,7 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      padding: 4px 8px;
+      padding: 4px 9px;
       border-radius: 999px;
       background: rgba(15, 23, 42, 0.45);
       color: var(--text-secondary);
@@ -331,7 +434,7 @@
     }
 
     .primary-clock {
-      font-size: clamp(2.6rem, 11vw, 4.5rem);
+      font-size: clamp(2.5rem, 11vw, 4.4rem);
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.03em;
@@ -429,25 +532,18 @@
     .center-dock {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 7px;
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: 14px;
-      padding: 8px 10px;
+      padding: 8px 11px;
       flex-shrink: 0;
     }
 
     .session-pill-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-    }
-
-    .session-metrics {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
       font-size: 12px;
       font-variant-numeric: tabular-nums;
     }
@@ -455,7 +551,17 @@
     .session-metric-item {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 4px;
+      white-space: nowrap;
+    }
+
+    .session-metric-item:first-child {
+      justify-content: flex-start;
+    }
+
+    .session-metric-item:last-child {
+      justify-content: flex-end;
     }
 
     .session-metric-item strong {
@@ -498,8 +604,8 @@
 
     .dock-controls {
       display: grid;
-      grid-template-columns: 1.3fr 1fr 1fr 1fr;
-      gap: 6px;
+      grid-template-columns: 1.45fr 1fr 0.85fr;
+      gap: 7px;
     }
 
     .dock-btn {
@@ -507,12 +613,12 @@
       align-items: center;
       justify-content: center;
       gap: 5px;
-      padding: 9px 8px;
+      padding: 9px 10px;
       border-radius: 10px;
       border: 1px solid var(--border-subtle);
       background: var(--bg-elevated);
       color: var(--text-primary);
-      font-size: 12px;
+      font-size: 12.5px;
       font-weight: 700;
       cursor: pointer;
       transition: transform 0.08s ease, background 0.15s ease;
@@ -822,20 +928,39 @@
       </div>
 
       <div class="top-actions">
-        <button type="button" class="icon-btn" id="btnInteractionMode" onclick="toggleConcurrencyMode()" title="Switch between Mutual Exclusive (Chess Switch) and Concurrent (Simultaneous) tracking">
-          <span id="interactionModeLabel">Chess Switch</span>
-        </button>
-        <button type="button" class="icon-btn" id="btnFlipTop" onclick="toggleFlipTop()" title="Rotate Top Pad 180° for tabletop face-to-face use">
-          <span>Flip Top</span>
-        </button>
-        <button type="button" class="icon-btn" id="btnSound" onclick="toggleSound()" title="Toggle audio &amp; haptic click feedback">
+        <button type="button" class="icon-btn active-toggle" id="btnSound" onclick="toggleSound()" title="Toggle audio &amp; haptic click feedback">
           <span id="soundLabel">Sound On</span>
         </button>
-        <button type="button" class="icon-btn" onclick="openModal('settingsModal')" title="Timer &amp; ABA Settings">
-          <span>Setup</span>
+        <button type="button" class="icon-btn dots-btn" id="btnDotsMenu" onclick="toggleDotsMenu(event)" aria-label="More options" title="Menu">
+          &#8943;
+        </button>
+      </div>
+
+      <!-- Three-Dots Popover Menu -->
+      <div class="dots-menu" id="dotsMenu" role="menu" onclick="event.stopPropagation()">
+        <button type="button" class="menu-item" onclick="menuOpenDataModal()">
+          <span class="menu-item-left">Log &amp; Export</span>
+          <span class="menu-badge highlight" id="totalBoutsBadge">0 bouts</span>
+        </button>
+        <div class="menu-divider"></div>
+        <button type="button" class="menu-item" onclick="menuToggleConcurrency()">
+          <span class="menu-item-left">Mode</span>
+          <span class="menu-badge" id="interactionModeLabel">Chess Switch</span>
+        </button>
+        <button type="button" class="menu-item" onclick="menuToggleFlipTop()">
+          <span class="menu-item-left">Flip Top Pad</span>
+          <span class="menu-badge" id="flipTopBadge">Off</span>
+        </button>
+        <div class="menu-divider"></div>
+        <button type="button" class="menu-item" onclick="menuOpenSettingsModal()">
+          <span class="menu-item-left">Setup</span>
+          <span class="menu-badge">Config</span>
         </button>
       </div>
     </header>
+
+    <!-- Invisible Backdrop to Dismiss Three-Dots Menu -->
+    <div class="menu-backdrop" id="menuBackdrop" onclick="closeDotsMenu()"></div>
 
     <!-- Dual Timer Arena -->
     <main class="arena">
@@ -847,7 +972,7 @@
             <span class="pad-name" id="labelA">Speaker 1 (Person A)</span>
             <button type="button" class="edit-label-btn" onclick="promptRename('A', event)">Rename</button>
           </div>
-          <span class="pad-state-pill" id="statePillA">Paused</span>
+          <span class="pad-state-pill" id="statePillA">Tap to Start</span>
         </div>
 
         <div class="pad-clock-wrap">
@@ -857,8 +982,8 @@
 
         <div class="pad-stats-grid">
           <div class="stat-cell">
-            <span class="stat-label" id="statPrimaryLabelA">Elapsed</span>
-            <span class="stat-val" id="statElapsedA">00:00.0</span>
+            <span class="stat-label" id="statPrimaryLabelA">Remaining</span>
+            <span class="stat-val" id="statElapsedA">05:00.0</span>
           </div>
           <div class="stat-cell">
             <span class="stat-label">Bouts</span>
@@ -882,22 +1007,17 @@
       <!-- Center Session & ABA Controls -->
       <section class="center-dock" aria-label="Session Controls">
         <div class="session-pill-row">
-          <div class="session-metrics">
-            <div class="session-metric-item">
-              <span>Session:</span>
-              <strong id="sessionTotalClock">00:00.0</strong>
-            </div>
-            <div class="session-metric-item">
-              <span>Active:</span>
-              <strong id="sessionActiveClock">00:00.0</strong>
-            </div>
-            <div class="session-metric-item">
-              <span>Silence/IRT:</span>
-              <strong id="sessionNeutralClock">00:00.0</strong>
-            </div>
+          <div class="session-metric-item">
+            <span>Session:</span>
+            <strong id="sessionTotalClock">00:00.0</strong>
           </div>
-          <div class="session-metrics">
-            <span id="wakeLockBadge" style="font-size:11px; color: var(--text-secondary);">Awake</span>
+          <div class="session-metric-item">
+            <span>Active:</span>
+            <strong id="sessionActiveClock">00:00.0</strong>
+          </div>
+          <div class="session-metric-item">
+            <span>Silence/IRT:</span>
+            <strong id="sessionNeutralClock">00:00.0</strong>
           </div>
         </div>
 
@@ -910,13 +1030,10 @@
 
         <div class="dock-controls">
           <button type="button" class="dock-btn pause-both-btn" id="btnPauseBoth" onclick="pauseBothPads()">
-            <span id="pauseBothLabel">Pause Both (Silence)</span>
+            <span id="pauseBothLabel">Ready (Tap a Pad)</span>
           </button>
           <button type="button" class="dock-btn" onclick="undoLastBout()" title="Remove last recorded bout &amp; revert its time">
             <span>Undo Bout</span>
-          </button>
-          <button type="button" class="dock-btn" onclick="openModal('dataModal')">
-            <span>Log &amp; Export (<span id="totalBoutsBadge">0</span>)</span>
           </button>
           <button type="button" class="dock-btn danger-subtle" onclick="confirmResetSession()">
             <span>Reset</span>
@@ -932,7 +1049,7 @@
             <span class="pad-name" id="labelB">Speaker 2 (Person B)</span>
             <button type="button" class="edit-label-btn" onclick="promptRename('B', event)">Rename</button>
           </div>
-          <span class="pad-state-pill" id="statePillB">Paused</span>
+          <span class="pad-state-pill" id="statePillB">Tap to Start</span>
         </div>
 
         <div class="pad-clock-wrap">
@@ -942,8 +1059,8 @@
 
         <div class="pad-stats-grid">
           <div class="stat-cell">
-            <span class="stat-label" id="statPrimaryLabelB">Elapsed</span>
-            <span class="stat-val" id="statElapsedB">00:00.0</span>
+            <span class="stat-label" id="statPrimaryLabelB">Remaining</span>
+            <span class="stat-val" id="statElapsedB">05:00.0</span>
           </div>
           <div class="stat-cell">
             <span class="stat-label">Bouts</span>
@@ -979,9 +1096,9 @@
           <div class="section-title">Quick ABA Label Templates</div>
           <div class="preset-chips">
             <button type="button" class="chip-btn" onclick="applyLabelPreset('Speaker 1 (Person A)', 'Speaker 2 (Person B)')">Conversation (Speaker 1 / 2)</button>
+            <button type="button" class="chip-btn" onclick="applyLabelPreset('Talk', 'Work')">Talk / Work</button>
             <button type="button" class="chip-btn" onclick="applyLabelPreset('Client Speaking', 'Peer / Clinician Speaking')">Client / Peer Turn-Taking</button>
             <button type="button" class="chip-btn" onclick="applyLabelPreset('On-Task Engagement', 'Off-Task / Competing')">On-Task vs. Off-Task</button>
-            <button type="button" class="chip-btn" onclick="applyLabelPreset('Target Behavior A', 'Replacement Behavior B')">Target vs. Replacement</button>
           </div>
           <div class="field-row">
             <span class="field-label">Side A Label</span>
@@ -1003,6 +1120,7 @@
             <button type="button" class="chip-btn" onclick="applyTimePreset(600)">10:00</button>
             <button type="button" class="chip-btn" onclick="applyTimePreset(900)">15:00</button>
             <button type="button" class="chip-btn" onclick="applyTimePreset(1800)">30:00</button>
+            <button type="button" class="chip-btn" onclick="applyTimePreset(2700)">45:00</button>
           </div>
           <div class="field-row">
             <div>
@@ -1136,20 +1254,16 @@
         canvas.width = 180;
         canvas.height = 180;
         const ctx = canvas.getContext('2d');
-        // Dark slate background
         ctx.fillStyle = '#0f172a';
         ctx.fillRect(0, 0, 180, 180);
-        // Top half teal card
         ctx.fillStyle = '#0d9488';
         ctx.beginPath();
         ctx.roundRect(16, 16, 148, 68, 16);
         ctx.fill();
-        // Bottom half indigo card
         ctx.fillStyle = '#4f46e5';
         ctx.beginPath();
         ctx.roundRect(16, 96, 148, 68, 16);
         ctx.fill();
-        // Text numerals
         ctx.fillStyle = '#f8fafc';
         ctx.font = 'bold 28px -apple-system, sans-serif';
         ctx.textAlign = 'center';
@@ -1162,6 +1276,9 @@
     })();
 
     // --- Application State ---
+    const CONFIG_STORAGE_KEY = 'aba_dual_timer_config_v2';
+    const STORAGE_KEY = 'aba_dual_timer_sessions_v1';
+
     const state = {
       direction: 'up', // 'up' | 'down'
       concurrency: 'exclusive', // 'exclusive' (chess switch) | 'concurrent'
@@ -1183,7 +1300,7 @@
           currentBoutMs: 0,
           currentBoutStartOffsetMs: 0,
           countdownTargetMs: 5 * 60 * 1000,
-          bouts: [], // { channel, boutNum, startOffsetMs, endOffsetMs, durationMs, timestamp }
+          bouts: [],
           overtimeAlerted: false
         },
         B: {
@@ -1201,6 +1318,127 @@
 
       allBouts: []
     };
+
+    // --- Persist & Restore User Preferences ---
+    function persistConfig() {
+      try {
+        const cfg = {
+          direction: state.direction,
+          concurrency: state.concurrency,
+          activeTapBehavior: state.activeTapBehavior,
+          overtimeBehavior: state.overtimeBehavior,
+          flipTop: state.flipTop,
+          soundEnabled: state.soundEnabled,
+          labelA: state.channels.A.label,
+          labelB: state.channels.B.label,
+          countdownTargetMsA: state.channels.A.countdownTargetMs,
+          countdownTargetMsB: state.channels.B.countdownTargetMs
+        };
+        localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(cfg));
+      } catch (e) {}
+    }
+
+    function loadPersistedConfig() {
+      try {
+        const raw = localStorage.getItem(CONFIG_STORAGE_KEY);
+        if (!raw) return;
+        const cfg = JSON.parse(raw);
+        if (cfg.direction === 'up' || cfg.direction === 'down') state.direction = cfg.direction;
+        if (cfg.concurrency === 'exclusive' || cfg.concurrency === 'concurrent') state.concurrency = cfg.concurrency;
+        if (['pause', 'switch', 'ignore'].includes(cfg.activeTapBehavior)) state.activeTapBehavior = cfg.activeTapBehavior;
+        if (['overtime', 'stop'].includes(cfg.overtimeBehavior)) state.overtimeBehavior = cfg.overtimeBehavior;
+        if (typeof cfg.flipTop === 'boolean') state.flipTop = cfg.flipTop;
+        if (typeof cfg.soundEnabled === 'boolean') state.soundEnabled = cfg.soundEnabled;
+        if (cfg.labelA) state.channels.A.label = cfg.labelA;
+        if (cfg.labelB) state.channels.B.label = cfg.labelB;
+        if (typeof cfg.countdownTargetMsA === 'number') state.channels.A.countdownTargetMs = cfg.countdownTargetMsA;
+        if (typeof cfg.countdownTargetMsB === 'number') state.channels.B.countdownTargetMs = cfg.countdownTargetMsB;
+
+        // Sync DOM inputs & labels
+        document.getElementById('labelA').textContent = state.channels.A.label;
+        document.getElementById('labelB').textContent = state.channels.B.label;
+        document.getElementById('inputLabelA').value = state.channels.A.label;
+        document.getElementById('inputLabelB').value = state.channels.B.label;
+
+        const minA = Math.floor(state.channels.A.countdownTargetMs / 60000);
+        const secA = Math.floor((state.channels.A.countdownTargetMs % 60000) / 1000);
+        const minB = Math.floor(state.channels.B.countdownTargetMs / 60000);
+        const secB = Math.floor((state.channels.B.countdownTargetMs % 60000) / 1000);
+        document.getElementById('cdMinA').value = minA;
+        document.getElementById('cdSecA').value = String(secA).padStart(2, '0');
+        document.getElementById('cdMinB').value = minB;
+        document.getElementById('cdSecB').value = String(secB).padStart(2, '0');
+
+        document.getElementById('selectOvertimeBehavior').value = state.overtimeBehavior;
+        document.getElementById('selectActiveTapBehavior').value = state.activeTapBehavior;
+        document.getElementById('selectConcurrency').value = state.concurrency;
+
+        document.getElementById('btnModeCountUp').classList.toggle('active', state.direction === 'up');
+        document.getElementById('btnModeCountdown').classList.toggle('active', state.direction === 'down');
+        document.getElementById('padA').classList.toggle('flipped', state.flipTop);
+        document.getElementById('soundLabel').textContent = state.soundEnabled ? 'Sound On' : 'Muted';
+        document.getElementById('btnSound').classList.toggle('active-toggle', state.soundEnabled);
+        syncMenuBadges();
+      } catch (e) {}
+    }
+
+    // --- Three-Dots Menu Controls ---
+    function toggleDotsMenu(event) {
+      if (event) event.stopPropagation();
+      const menu = document.getElementById('dotsMenu');
+      const backdrop = document.getElementById('menuBackdrop');
+      const btn = document.getElementById('btnDotsMenu');
+      const isOpen = menu.classList.contains('open');
+      if (isOpen) {
+        closeDotsMenu();
+      } else {
+        syncMenuBadges();
+        menu.classList.add('open');
+        backdrop.classList.add('open');
+        btn.classList.add('active-toggle');
+      }
+    }
+
+    function closeDotsMenu() {
+      document.getElementById('dotsMenu').classList.remove('open');
+      document.getElementById('menuBackdrop').classList.remove('open');
+      document.getElementById('btnDotsMenu').classList.remove('active-toggle');
+    }
+
+    function menuOpenDataModal() {
+      closeDotsMenu();
+      openModal('dataModal');
+    }
+
+    function menuOpenSettingsModal() {
+      closeDotsMenu();
+      openModal('settingsModal');
+    }
+
+    function menuToggleConcurrency() {
+      toggleConcurrencyMode();
+      closeDotsMenu();
+    }
+
+    function menuToggleFlipTop() {
+      toggleFlipTop();
+      closeDotsMenu();
+    }
+
+    function syncMenuBadges() {
+      const modeLbl = document.getElementById('interactionModeLabel');
+      if (state.concurrency === 'exclusive') {
+        modeLbl.textContent = 'Chess Switch';
+        modeLbl.classList.remove('highlight');
+      } else {
+        modeLbl.textContent = 'Concurrent';
+        modeLbl.classList.add('highlight');
+      }
+
+      const flipBadge = document.getElementById('flipTopBadge');
+      flipBadge.textContent = state.flipTop ? 'On' : 'Off';
+      flipBadge.classList.toggle('highlight', state.flipTop);
+    }
 
     // --- Web Audio Synthesizer for Tactile iOS Feedback ---
     let audioCtx = null;
@@ -1234,19 +1472,10 @@
     // --- Screen Wake Lock for Uninterrupted iPhone Observation ---
     let wakeLockSentinel = null;
     async function requestWakeLock() {
-      const badge = document.getElementById('wakeLockBadge');
       if ('wakeLock' in navigator) {
         try {
           wakeLockSentinel = await navigator.wakeLock.request('screen');
-          if (badge) badge.textContent = 'Screen Awake';
-          wakeLockSentinel.addEventListener('release', () => {
-            if (badge) badge.textContent = 'Auto-Lock';
-          });
-        } catch (err) {
-          if (badge) badge.textContent = 'Ready';
-        }
-      } else {
-        if (badge) badge.textContent = 'Ready';
+        } catch (err) {}
       }
     }
 
@@ -1257,7 +1486,7 @@
     });
 
     // --- Formatting Helpers ---
-    function formatClockHTML(ms, showSign = false) {
+    function formatClockHTML(ms) {
       const isNegative = ms < 0;
       const absMs = Math.abs(ms);
       const totalSeconds = Math.floor(absMs / 1000);
@@ -1266,7 +1495,7 @@
       const seconds = totalSeconds % 60;
       const tenths = Math.floor((absMs % 1000) / 100);
 
-      const signPrefix = isNegative ? '+' : (showSign ? '' : '');
+      const signPrefix = isNegative ? '+' : '';
       const mm = String(minutes).padStart(2, '0');
       const ss = String(seconds).padStart(2, '0');
       if (hours > 0) {
@@ -1335,7 +1564,6 @@
 
       if (state.concurrency === 'exclusive') {
         if (tappedCh.running) {
-          // User tapped the side that is ALREADY running
           if (state.activeTapBehavior === 'pause') {
             finalizeBout(tappedKey);
             playTone(440, 40, 'triangle');
@@ -1344,11 +1572,9 @@
             startChannel(otherKey);
             playTone(otherKey === 'A' ? 680 : 540, 35, 'sine');
           } else {
-            // 'ignore' - require tapping the other side
             return;
           }
         } else {
-          // User tapped the inactive side -> switch immediately!
           if (otherCh.running) {
             finalizeBout(otherKey);
           }
@@ -1356,7 +1582,6 @@
           playTone(tappedKey === 'A' ? 680 : 540, 35, 'sine');
         }
       } else {
-        // Concurrent (Independent) Mode: each pad toggles itself independently
         if (tappedCh.running) {
           finalizeBout(tappedKey);
           playTone(440, 35, 'triangle');
@@ -1378,7 +1603,6 @@
     }
 
     function undoLastBout() {
-      // If a bout is currently active, cancel the current active bout first
       if (state.channels.A.running || state.channels.B.running) {
         for (const k of ['A', 'B']) {
           const ch = state.channels[k];
@@ -1413,7 +1637,6 @@
         const dt = Math.max(0, now - state.lastFrameTime);
         const anyRunning = state.channels.A.running || state.channels.B.running;
 
-        // Advance session clock once session has started
         if (state.sessionStartedAt !== null && (anyRunning || state.sessionElapsedMs > 0)) {
           state.sessionElapsedMs += dt;
         }
@@ -1512,7 +1735,7 @@
       document.getElementById('sessionNeutralClock').textContent = formatPlainTime(neutralMs);
 
       const totalBouts = state.allBouts.length + (state.channels.A.running ? 1 : 0) + (state.channels.B.running ? 1 : 0);
-      document.getElementById('totalBoutsBadge').textContent = String(totalBouts);
+      document.getElementById('totalBoutsBadge').textContent = `${totalBouts} bout${totalBouts === 1 ? '' : 's'}`;
 
       // Pause Both button state
       const anyRunning = state.channels.A.running || state.channels.B.running;
@@ -1550,39 +1773,32 @@
       document.getElementById('btnModeCountUp').classList.toggle('active', dir === 'up');
       document.getElementById('btnModeCountdown').classList.toggle('active', dir === 'down');
       playTone(520, 25, 'sine');
+      persistConfig();
       updateUI();
     }
 
     function toggleConcurrencyMode() {
       state.concurrency = state.concurrency === 'exclusive' ? 'concurrent' : 'exclusive';
       document.getElementById('selectConcurrency').value = state.concurrency;
-      syncTopBarBadges();
+      syncMenuBadges();
+      persistConfig();
       showToast(state.concurrency === 'exclusive' ? 'Chess Switch Mode (Mutual Exclusive)' : 'Concurrent Mode (Simultaneous Timing)');
     }
 
     function toggleFlipTop() {
       state.flipTop = !state.flipTop;
       document.getElementById('padA').classList.toggle('flipped', state.flipTop);
-      document.getElementById('btnFlipTop').classList.toggle('active-toggle', state.flipTop);
+      syncMenuBadges();
+      persistConfig();
+      showToast(state.flipTop ? 'Top pad flipped 180°' : 'Top pad upright');
     }
 
     function toggleSound() {
       state.soundEnabled = !state.soundEnabled;
       document.getElementById('soundLabel').textContent = state.soundEnabled ? 'Sound On' : 'Muted';
       document.getElementById('btnSound').classList.toggle('active-toggle', state.soundEnabled);
+      persistConfig();
       if (state.soundEnabled) playTone(660, 30, 'sine');
-    }
-
-    function syncTopBarBadges() {
-      const btn = document.getElementById('btnInteractionMode');
-      const lbl = document.getElementById('interactionModeLabel');
-      if (state.concurrency === 'exclusive') {
-        lbl.textContent = 'Chess Switch';
-        btn.classList.remove('active-toggle');
-      } else {
-        lbl.textContent = 'Concurrent';
-        btn.classList.add('active-toggle');
-      }
     }
 
     function promptRename(chKey, event) {
@@ -1593,6 +1809,7 @@
         state.channels[chKey].label = next.trim();
         document.getElementById('label' + chKey).textContent = next.trim();
         document.getElementById('inputLabel' + chKey).value = next.trim();
+        persistConfig();
       }
     }
 
@@ -1603,6 +1820,7 @@
       document.getElementById('labelB').textContent = labelB;
       document.getElementById('inputLabelA').value = labelA;
       document.getElementById('inputLabelB').value = labelB;
+      persistConfig();
       showToast('Applied label preset');
     }
 
@@ -1628,6 +1846,7 @@
       state.channels.B.countdownTargetMs = (minB * 60 + secB) * 1000;
       state.channels.A.overtimeAlerted = false;
       state.channels.B.overtimeAlerted = false;
+      persistConfig();
       updateUI();
     }
 
@@ -1642,7 +1861,8 @@
       state.overtimeBehavior = document.getElementById('selectOvertimeBehavior').value;
       state.activeTapBehavior = document.getElementById('selectActiveTapBehavior').value;
       state.concurrency = document.getElementById('selectConcurrency').value;
-      syncTopBarBadges();
+      syncMenuBadges();
+      persistConfig();
       updateUI();
     }
 
@@ -1805,7 +2025,6 @@
     }
 
     function exportCSV() {
-      // Finalize any running bout so it's included in export
       if (state.channels.A.running || state.channels.B.running) {
         pauseBothPads();
         renderDataModal();
@@ -1866,8 +2085,6 @@
     }
 
     // --- LocalStorage Session History ---
-    const STORAGE_KEY = 'aba_dual_timer_sessions_v1';
-
     function getSavedSessions() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -1953,11 +2170,12 @@
       toastTimeout = setTimeout(() => el.classList.remove('show'), 2100);
     }
 
-    // Initialize loop
+    // Initialize
+    loadPersistedConfig();
     requestAnimationFrame(tickLoop);
     updateUI();
   </script>
 </body>
 </html>
 aba_duration_timer.html
-Displaying aba_duration_timer.html.
+Zoomed out of item.
