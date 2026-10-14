@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ABA Timer" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>ABA Dual Duration &amp; Chess Timer</title>
+  <link id="apple-touch-icon" rel="apple-touch-icon" href="" />
+  <style>
+    :root {
+      --bg-base: #0b1120;
+      --bg-surface: #151f32;
+      --bg-elevated: #1e293b;
+      --border-subtle: rgba(148, 163, 184, 0.16);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+
+      /* Channel A: Teal / Cyan */
+      --ch-a-bg: #0f292e;
+      --ch-a-bg-active: #0d4a52;
+      --ch-a-border: #14b8a6;
+      --ch-a-accent: #2dd4bf;
+      --ch-a-badge: rgba(45, 212, 191, 0.16);
+
+      /* Channel B: Indigo / Violet */
+      --ch-b-bg: #1e1b38;
+      --ch-b-bg-active: #312963;
+      --ch-b-border: #818cf8;
+      --ch-b-accent: #a5b4fc;
+      --ch-b-badge: rgba(165, 180, 252, 0.16);
+
+      /* Semantic Status */
+      --amber: #f59e0b;
+      --danger: #ef4444;
+      --success: #10b981;
+
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      touch-action: manipulation;
+      overscroll-behavior: none;
+    }
+
+    input, textarea, select {
+      -webkit-user-select: auto;
+      user-select: auto;
+      font-family: inherit;
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100dvh;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+      padding-left: var(--safe-left);
+      padding-right: var(--safe-right);
+    }
+
+    /* Top Status & Mode Bar */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 6px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .mode-segmented {
+      display: inline-flex;
+      background: var(--bg-base);
+      padding: 3px;
+      border-radius: 9px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .mode-btn {
+      background: transparent;
+      color: var(--text-secondary);
+      border: none;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .mode-btn.active {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 6px 9px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.15s ease;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.95);
+    }
+
+    .icon-btn.active-toggle {
+      border-color: var(--ch-a-border);
+      color: var(--ch-a-accent);
+      background: rgba(20, 184, 166, 0.12);
+    }
+
+    /* Main Split Timer Arena */
+    .arena {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      padding: 8px;
+      gap: 8px;
+    }
+
+    @media (orientation: landscape) and (min-width: 640px) {
+      .arena {
+        flex-direction: row;
+      }
+      .center-dock {
+        flex-direction: column !important;
+        width: 126px;
+        justify-content: center;
+      }
+      .session-pill-row {
+        flex-direction: column !important;
+      }
+    }
+
+    /* Timer Pad Card */
+    .timer-pad {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-radius: 18px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.08s ease;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .timer-pad:active {
+      transform: scale(0.992);
+    }
+
+    .timer-pad.pad-a {
+      background: var(--ch-a-bg);
+      border: 2px solid rgba(20, 184, 166, 0.28);
+    }
+
+    .timer-pad.pad-a.running {
+      background: var(--ch-a-bg-active);
+      border-color: var(--ch-a-border);
+      box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.22), inset 0 0 28px rgba(45, 212, 191, 0.12);
+    }
+
+    .timer-pad.pad-b {
+      background: var(--ch-b-bg);
+      border: 2px solid rgba(129, 140, 248, 0.28);
+    }
+
+    .timer-pad.pad-b.running {
+      background: var(--ch-b-bg-active);
+      border-color: var(--ch-b-border);
+      box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.22), inset 0 0 28px rgba(165, 180, 252, 0.12);
+    }
+
+    .timer-pad.overtime {
+      border-color: var(--danger) !important;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+    }
+
+    .timer-pad.flipped {
+      transform: rotate(180deg);
+    }
+    .timer-pad.flipped:active {
+      transform: rotate(180deg) scale(0.992);
+    }
+
+    /* Pad Header */
+    .pad-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      z-index: 2;
+    }
+
+    .pad-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .running .status-dot {
+      background: #4ade80;
+      box-shadow: 0 0 8px #4ade80;
+      animation: pulseDot 1.2s infinite ease-in-out;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.85); }
+    }
+
+    .pad-name {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .edit-label-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      padding: 3px 7px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .pad-state-pill {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.45);
+      color: var(--text-secondary);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      flex-shrink: 0;
+    }
+
+    .pad-a.running .pad-state-pill {
+      background: var(--ch-a-badge);
+      color: var(--ch-a-accent);
+      border-color: rgba(45, 212, 191, 0.4);
+    }
+
+    .pad-b.running .pad-state-pill {
+      background: var(--ch-b-badge);
+      color: var(--ch-b-accent);
+      border-color: rgba(165, 180, 252, 0.4);
+    }
+
+    /* Pad Center Clock Readout */
+    .pad-clock-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: auto 0;
+      z-index: 2;
+    }
+
+    .primary-clock {
+      font-size: clamp(2.6rem, 11vw, 4.5rem);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    }
+
+    .primary-clock .tenths {
+      font-size: 0.55em;
+      font-weight: 700;
+      opacity: 0.82;
+    }
+
+    .overtime .primary-clock {
+      color: #fca5a5;
+    }
+
+    .current-bout-pill {
+      margin-top: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-secondary);
+      background: rgba(15, 23, 42, 0.5);
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .running .current-bout-pill {
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Pad Footer ABA Stats Strip */
+    .pad-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      background: rgba(11, 17, 32, 0.48);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 11px;
+      padding: 7px 8px;
+      z-index: 2;
+    }
+
+    .stat-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+    }
+
+    .stat-val {
+      font-size: 13px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-primary);
+      margin-top: 1px;
+    }
+
+    /* Progress bar along bottom of pad */
+    .pad-progress-track {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .pad-progress-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.15s linear;
+    }
+
+    .pad-a .pad-progress-fill {
+      background: var(--ch-a-accent);
+    }
+
+    .pad-b .pad-progress-fill {
+      background: var(--ch-b-accent);
+    }
+
+    /* Center Control Dock */
+    .center-dock {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 8px 10px;
+      flex-shrink: 0;
+    }
+
+    .session-pill-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .session-metrics {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .session-metric-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .session-metric-item strong {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    .session-metric-item span {
+      color: var(--text-secondary);
+    }
+
+    /* Split Dominance Bar */
+    .dominance-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--bg-base);
+      border-radius: 999px;
+      overflow: hidden;
+      display: flex;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .dom-a {
+      background: var(--ch-a-accent);
+      height: 100%;
+      transition: width 0.2s ease;
+    }
+
+    .dom-neutral {
+      background: #475569;
+      height: 100%;
+      transition: width 0.2s ease;
+    }
+
+    .dom-b {
+      background: var(--ch-b-accent);
+      height: 100%;
+      transition: width 0.2s ease;
+    }
+
+    .dock-controls {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1fr 1fr;
+      gap: 6px;
+    }
+
+    .dock-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 9px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.08s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .dock-btn:active {
+      transform: scale(0.96);
+    }
+
+    .dock-btn.pause-both-btn.paused-state {
+      background: rgba(245, 158, 11, 0.16);
+      border-color: rgba(245, 158, 11, 0.45);
+      color: #fcd34d;
+    }
+
+    .dock-btn.danger-subtle {
+      color: #fca5a5;
+    }
+
+    /* Modal / Drawer Overlay */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.78);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 100;
+      padding-top: var(--safe-top);
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: 640px;
+      max-height: 88dvh;
+      background: var(--bg-surface);
+      border-top-left-radius: 22px;
+      border-top-right-radius: 22px;
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding-bottom: var(--safe-bottom);
+      animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .modal-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 5px 11px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 16px 18px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Form Controls in Settings & Modals */
+    .section-card {
+      background: var(--bg-base);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 13px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .field-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .field-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .text-input, .select-input {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .text-input:focus, .select-input:focus {
+      outline: 2px solid var(--ch-a-border);
+    }
+
+    .time-inputs-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .time-input {
+      width: 54px;
+      text-align: center;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 6px 4px;
+      font-size: 14px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip-btn {
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .chip-btn:active, .chip-btn.active {
+      background: rgba(45, 212, 191, 0.16);
+      color: var(--ch-a-accent);
+      border-color: var(--ch-a-border);
+    }
+
+    /* Data Summary Table & Bout List */
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .summary-table th, .summary-table td {
+      padding: 8px 6px;
+      text-align: right;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .summary-table th:first-child, .summary-table td:first-child {
+      text-align: left;
+      font-weight: 700;
+    }
+
+    .summary-table th {
+      color: var(--text-secondary);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .bout-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .bout-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .bout-tag-a {
+      color: var(--ch-a-accent);
+      font-weight: 700;
+    }
+
+    .bout-tag-b {
+      color: var(--ch-b-accent);
+      font-weight: 700;
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .primary-btn {
+      flex: 1;
+      min-width: 120px;
+      background: var(--ch-a-border);
+      color: #042f2e;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .secondary-btn {
+      flex: 1;
+      min-width: 120px;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .toast {
+      position: fixed;
+      top: calc(var(--safe-top) + 56px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #10b981;
+      color: #052e16;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Navigation & Mode Controls -->
+    <header class="top-bar">
+      <div class="brand-group">
+        <div class="mode-segmented" role="tablist" aria-label="Timer Direction">
+          <button type="button" class="mode-btn active" id="btnModeCountUp" onclick="setTimerDirection('up')">Count Up</button>
+          <button type="button" class="mode-btn" id="btnModeCountdown" onclick="setTimerDirection('down')">Countdown</button>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button type="button" class="icon-btn" id="btnInteractionMode" onclick="toggleConcurrencyMode()" title="Switch between Mutual Exclusive (Chess Switch) and Concurrent (Simultaneous) tracking">
+          <span id="interactionModeLabel">Chess Switch</span>
+        </button>
+        <button type="button" class="icon-btn" id="btnFlipTop" onclick="toggleFlipTop()" title="Rotate Top Pad 180° for tabletop face-to-face use">
+          <span>Flip Top</span>
+        </button>
+        <button type="button" class="icon-btn" id="btnSound" onclick="toggleSound()" title="Toggle audio &amp; haptic click feedback">
+          <span id="soundLabel">Sound On</span>
+        </button>
+        <button type="button" class="icon-btn" onclick="openModal('settingsModal')" title="Timer &amp; ABA Settings">
+          <span>Setup</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Dual Timer Arena -->
+    <main class="arena">
+      <!-- Channel A Pad -->
+      <section class="timer-pad pad-a" id="padA" onclick="handlePadTap('A', event)" role="button" tabindex="0" aria-label="Channel A Timer Pad">
+        <div class="pad-header">
+          <div class="pad-title-wrap">
+            <span class="status-dot"></span>
+            <span class="pad-name" id="labelA">Speaker 1 (Person A)</span>
+            <button type="button" class="edit-label-btn" onclick="promptRename('A', event)">Rename</button>
+          </div>
+          <span class="pad-state-pill" id="statePillA">Paused</span>
+        </div>
+
+        <div class="pad-clock-wrap">
+          <div class="primary-clock" id="clockA">00:00<span class="tenths">.0</span></div>
+          <div class="current-bout-pill" id="boutPillA">Current bout: 0.0s</div>
+        </div>
+
+        <div class="pad-stats-grid">
+          <div class="stat-cell">
+            <span class="stat-label" id="statPrimaryLabelA">Elapsed</span>
+            <span class="stat-val" id="statElapsedA">00:00.0</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">Bouts</span>
+            <span class="stat-val" id="statBoutsA">0</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">Mean Bout</span>
+            <span class="stat-val" id="statMeanA">0.0s</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">% Session</span>
+            <span class="stat-val" id="statPctA">0.0%</span>
+          </div>
+        </div>
+
+        <div class="pad-progress-track">
+          <div class="pad-progress-fill" id="progressA"></div>
+        </div>
+      </section>
+
+      <!-- Center Session & ABA Controls -->
+      <section class="center-dock" aria-label="Session Controls">
+        <div class="session-pill-row">
+          <div class="session-metrics">
+            <div class="session-metric-item">
+              <span>Session:</span>
+              <strong id="sessionTotalClock">00:00.0</strong>
+            </div>
+            <div class="session-metric-item">
+              <span>Active:</span>
+              <strong id="sessionActiveClock">00:00.0</strong>
+            </div>
+            <div class="session-metric-item">
+              <span>Silence/IRT:</span>
+              <strong id="sessionNeutralClock">00:00.0</strong>
+            </div>
+          </div>
+          <div class="session-metrics">
+            <span id="wakeLockBadge" style="font-size:11px; color: var(--text-secondary);">Awake</span>
+          </div>
+        </div>
+
+        <!-- Visual Ratio Bar (A vs Silence vs B) -->
+        <div class="dominance-bar" title="Proportion of Session: Channel A (Teal) vs Silence (Gray) vs Channel B (Indigo)">
+          <div class="dom-a" id="domBarA" style="width: 50%;"></div>
+          <div class="dom-neutral" id="domBarNeutral" style="width: 0%;"></div>
+          <div class="dom-b" id="domBarB" style="width: 50%;"></div>
+        </div>
+
+        <div class="dock-controls">
+          <button type="button" class="dock-btn pause-both-btn" id="btnPauseBoth" onclick="pauseBothPads()">
+            <span id="pauseBothLabel">Pause Both (Silence)</span>
+          </button>
+          <button type="button" class="dock-btn" onclick="undoLastBout()" title="Remove last recorded bout &amp; revert its time">
+            <span>Undo Bout</span>
+          </button>
+          <button type="button" class="dock-btn" onclick="openModal('dataModal')">
+            <span>Log &amp; Export (<span id="totalBoutsBadge">0</span>)</span>
+          </button>
+          <button type="button" class="dock-btn danger-subtle" onclick="confirmResetSession()">
+            <span>Reset</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Channel B Pad -->
+      <section class="timer-pad pad-b" id="padB" onclick="handlePadTap('B', event)" role="button" tabindex="0" aria-label="Channel B Timer Pad">
+        <div class="pad-header">
+          <div class="pad-title-wrap">
+            <span class="status-dot"></span>
+            <span class="pad-name" id="labelB">Speaker 2 (Person B)</span>
+            <button type="button" class="edit-label-btn" onclick="promptRename('B', event)">Rename</button>
+          </div>
+          <span class="pad-state-pill" id="statePillB">Paused</span>
+        </div>
+
+        <div class="pad-clock-wrap">
+          <div class="primary-clock" id="clockB">00:00<span class="tenths">.0</span></div>
+          <div class="current-bout-pill" id="boutPillB">Current bout: 0.0s</div>
+        </div>
+
+        <div class="pad-stats-grid">
+          <div class="stat-cell">
+            <span class="stat-label" id="statPrimaryLabelB">Elapsed</span>
+            <span class="stat-val" id="statElapsedB">00:00.0</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">Bouts</span>
+            <span class="stat-val" id="statBoutsB">0</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">Mean Bout</span>
+            <span class="stat-val" id="statMeanB">0.0s</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">% Session</span>
+            <span class="stat-val" id="statPctB">0.0%</span>
+          </div>
+        </div>
+
+        <div class="pad-progress-track">
+          <div class="pad-progress-fill" id="progressB"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Setup & Timer Configuration Modal -->
+  <div class="modal-backdrop" id="settingsModal" onclick="backdropClose(event, 'settingsModal')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Timer &amp; ABA Observation Setup</h2>
+        <button type="button" class="close-btn" onclick="closeModal('settingsModal')">Done</button>
+      </div>
+      <div class="modal-body">
+        <!-- Quick ABA Templates -->
+        <div class="section-card">
+          <div class="section-title">Quick ABA Label Templates</div>
+          <div class="preset-chips">
+            <button type="button" class="chip-btn" onclick="applyLabelPreset('Speaker 1 (Person A)', 'Speaker 2 (Person B)')">Conversation (Speaker 1 / 2)</button>
+            <button type="button" class="chip-btn" onclick="applyLabelPreset('Client Speaking', 'Peer / Clinician Speaking')">Client / Peer Turn-Taking</button>
+            <button type="button" class="chip-btn" onclick="applyLabelPreset('On-Task Engagement', 'Off-Task / Competing')">On-Task vs. Off-Task</button>
+            <button type="button" class="chip-btn" onclick="applyLabelPreset('Target Behavior A', 'Replacement Behavior B')">Target vs. Replacement</button>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Side A Label</span>
+            <input type="text" class="text-input" id="inputLabelA" value="Speaker 1 (Person A)" onchange="saveSettingsFromInputs()" />
+          </div>
+          <div class="field-row">
+            <span class="field-label">Side B Label</span>
+            <input type="text" class="text-input" id="inputLabelB" value="Speaker 2 (Person B)" onchange="saveSettingsFromInputs()" />
+          </div>
+        </div>
+
+        <!-- Countdown Configuration -->
+        <div class="section-card">
+          <div class="section-title">Countdown Starting Time (Per Side)</div>
+          <div class="preset-chips">
+            <button type="button" class="chip-btn" onclick="applyTimePreset(60)">1:00</button>
+            <button type="button" class="chip-btn" onclick="applyTimePreset(180)">3:00</button>
+            <button type="button" class="chip-btn" onclick="applyTimePreset(300)">5:00</button>
+            <button type="button" class="chip-btn" onclick="applyTimePreset(600)">10:00</button>
+            <button type="button" class="chip-btn" onclick="applyTimePreset(900)">15:00</button>
+            <button type="button" class="chip-btn" onclick="applyTimePreset(1800)">30:00</button>
+          </div>
+          <div class="field-row">
+            <div>
+              <div class="field-label">Side A Start Time (Min : Sec)</div>
+              <div class="field-sub">Used in Countdown mode</div>
+            </div>
+            <div class="time-inputs-group">
+              <input type="number" min="0" max="999" class="time-input" id="cdMinA" value="5" onchange="updateCountdownTargets()" />
+              <span>:</span>
+              <input type="number" min="0" max="59" class="time-input" id="cdSecA" value="00" onchange="updateCountdownTargets()" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div>
+              <div class="field-label">Side B Start Time (Min : Sec)</div>
+              <div class="field-sub">Can match Side A or be asymmetric</div>
+            </div>
+            <div class="time-inputs-group">
+              <input type="number" min="0" max="999" class="time-input" id="cdMinB" value="5" onchange="updateCountdownTargets()" />
+              <span>:</span>
+              <input type="number" min="0" max="59" class="time-input" id="cdSecB" value="00" onchange="updateCountdownTargets()" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div>
+              <div class="field-label">When Countdown Reaches 00:00</div>
+              <div class="field-sub">Keep recording overtime duration or auto-stop</div>
+            </div>
+            <select class="select-input" id="selectOvertimeBehavior" onchange="saveSettingsFromInputs()">
+              <option value="overtime" selected>Alert &amp; Track Overtime (+)</option>
+              <option value="stop">Alert &amp; Pause Timer</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tap Mechanics -->
+        <div class="section-card">
+          <div class="section-title">Tap Behavior &amp; Ergonomics</div>
+          <div class="field-row">
+            <div>
+              <div class="field-label">Tapping the Currently Active Pad</div>
+              <div class="field-sub">Choose ABA observer pause vs. physical chess clock slap</div>
+            </div>
+            <select class="select-input" id="selectActiveTapBehavior" onchange="saveSettingsFromInputs()">
+              <option value="pause" selected>Pauses Active (Silence)</option>
+              <option value="switch">Switches to Other Side (Chess Style)</option>
+              <option value="ignore">Keep Running (Tap Other to Switch)</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div>
+              <div class="field-label">Interaction Mode</div>
+              <div class="field-sub">Exclusive switches on tap; Concurrent allows simultaneous timing</div>
+            </div>
+            <select class="select-input" id="selectConcurrency" onchange="saveSettingsFromInputs()">
+              <option value="exclusive" selected>Chess Switch (Mutual Exclusive)</option>
+              <option value="concurrent">Concurrent (Independent Sides)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA Data Log & Export Modal -->
+  <div class="modal-backdrop" id="dataModal" onclick="backdropClose(event, 'dataModal')">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>ABA Session Summary &amp; Bout Log</h2>
+        <button type="button" class="close-btn" onclick="closeModal('dataModal')">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="section-card">
+          <div class="section-title">Session Metrics Breakdown</div>
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>Channel</th>
+                <th>Total Dur</th>
+                <th>Bouts</th>
+                <th>Mean</th>
+                <th>% Active</th>
+                <th>% Sess</th>
+              </tr>
+            </thead>
+            <tbody id="summaryTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="section-card">
+          <div class="field-row">
+            <span class="section-title">Session Notes / Context</span>
+            <span style="font-size:11px; color:var(--text-secondary);" id="sessionTimestampLabel"></span>
+          </div>
+          <input type="text" class="text-input" id="sessionNotesInput" placeholder="Optional client initials, setting, or condition notes..." />
+        </div>
+
+        <div class="section-card">
+          <div class="field-row">
+            <span class="section-title">Chronological Bout Log (<span id="boutLogCount">0</span>)</span>
+          </div>
+          <div class="bout-list" id="boutListContainer">
+            <div style="color:var(--text-secondary); font-size:12px; text-align:center; padding:12px;">No bouts recorded yet. Tap a pad to begin timing.</div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button type="button" class="primary-btn" onclick="exportCSV()">Download CSV</button>
+          <button type="button" class="secondary-btn" onclick="copyReportToClipboard()">Copy Summary</button>
+          <button type="button" class="secondary-btn" onclick="saveSessionToHistory()">Save Session</button>
+        </div>
+
+        <div class="section-card">
+          <div class="field-row">
+            <span class="section-title">Saved Sessions on Device (<span id="savedSessionsCount">0</span>)</span>
+            <button type="button" class="edit-label-btn" onclick="clearSavedHistory()">Clear All</button>
+          </div>
+          <div class="bout-list" id="savedSessionsContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toastBanner">Copied to clipboard</div>
+
+  <script>
+    // --- Generate Crisp iOS Home Screen Icon Dynamically ---
+    (function setupAppleTouchIcon() {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 180;
+        canvas.height = 180;
+        const ctx = canvas.getContext('2d');
+        // Dark slate background
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 180, 180);
+        // Top half teal card
+        ctx.fillStyle = '#0d9488';
+        ctx.beginPath();
+        ctx.roundRect(16, 16, 148, 68, 16);
+        ctx.fill();
+        // Bottom half indigo card
+        ctx.fillStyle = '#4f46e5';
+        ctx.beginPath();
+        ctx.roundRect(16, 96, 148, 68, 16);
+        ctx.fill();
+        // Text numerals
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 28px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('A • 05:00', 90, 50);
+        ctx.fillText('B • 05:00', 90, 130);
+        const iconLink = document.getElementById('apple-touch-icon');
+        if (iconLink) iconLink.href = canvas.toDataURL('image/png');
+      } catch (e) {}
+    })();
+
+    // --- Application State ---
+    const state = {
+      direction: 'up', // 'up' | 'down'
+      concurrency: 'exclusive', // 'exclusive' (chess switch) | 'concurrent'
+      activeTapBehavior: 'pause', // 'pause' | 'switch' | 'ignore'
+      overtimeBehavior: 'overtime', // 'overtime' | 'stop'
+      flipTop: false,
+      soundEnabled: true,
+
+      sessionStartedAt: null,
+      sessionElapsedMs: 0,
+      lastFrameTime: null,
+
+      channels: {
+        A: {
+          id: 'A',
+          label: 'Speaker 1 (Person A)',
+          running: false,
+          elapsedMs: 0,
+          currentBoutMs: 0,
+          currentBoutStartOffsetMs: 0,
+          countdownTargetMs: 5 * 60 * 1000,
+          bouts: [], // { channel, boutNum, startOffsetMs, endOffsetMs, durationMs, timestamp }
+          overtimeAlerted: false
+        },
+        B: {
+          id: 'B',
+          label: 'Speaker 2 (Person B)',
+          running: false,
+          elapsedMs: 0,
+          currentBoutMs: 0,
+          currentBoutStartOffsetMs: 0,
+          countdownTargetMs: 5 * 60 * 1000,
+          bouts: [],
+          overtimeAlerted: false
+        }
+      },
+
+      allBouts: []
+    };
+
+    // --- Web Audio Synthesizer for Tactile iOS Feedback ---
+    let audioCtx = null;
+    function playTone(freq = 620, durationMs = 35, type = 'sine') {
+      if (!state.soundEnabled) return;
+      try {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtx = new AudioContextClass();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.14, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + durationMs / 1000);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + durationMs / 1000);
+      } catch (e) {}
+      if (navigator.vibrate) {
+        try { navigator.vibrate(15); } catch (e) {}
+      }
+    }
+
+    // --- Screen Wake Lock for Uninterrupted iPhone Observation ---
+    let wakeLockSentinel = null;
+    async function requestWakeLock() {
+      const badge = document.getElementById('wakeLockBadge');
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLockSentinel = await navigator.wakeLock.request('screen');
+          if (badge) badge.textContent = 'Screen Awake';
+          wakeLockSentinel.addEventListener('release', () => {
+            if (badge) badge.textContent = 'Auto-Lock';
+          });
+        } catch (err) {
+          if (badge) badge.textContent = 'Ready';
+        }
+      } else {
+        if (badge) badge.textContent = 'Ready';
+      }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        requestWakeLock();
+      }
+    });
+
+    // --- Formatting Helpers ---
+    function formatClockHTML(ms, showSign = false) {
+      const isNegative = ms < 0;
+      const absMs = Math.abs(ms);
+      const totalSeconds = Math.floor(absMs / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      const tenths = Math.floor((absMs % 1000) / 100);
+
+      const signPrefix = isNegative ? '+' : (showSign ? '' : '');
+      const mm = String(minutes).padStart(2, '0');
+      const ss = String(seconds).padStart(2, '0');
+      if (hours > 0) {
+        const hh = String(hours).padStart(2, '0');
+        return `${signPrefix}${hh}:${mm}:${ss}<span class="tenths">.${tenths}</span>`;
+      }
+      return `${signPrefix}${mm}:${ss}<span class="tenths">.${tenths}</span>`;
+    }
+
+    function formatPlainTime(ms) {
+      const isNeg = ms < 0;
+      const absMs = Math.abs(ms);
+      const totalSeconds = Math.floor(absMs / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      const tenths = Math.floor((absMs % 1000) / 100);
+      const prefix = isNeg ? '+' : '';
+      return `${prefix}${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
+    }
+
+    function formatShortSeconds(ms) {
+      return (ms / 1000).toFixed(1) + 's';
+    }
+
+    // --- Core Bout Recording & Channel Switching ---
+    function finalizeBout(chKey) {
+      const ch = state.channels[chKey];
+      if (!ch.running) return;
+      ch.running = false;
+      if (ch.currentBoutMs >= 50) {
+        const boutRecord = {
+          id: Date.now() + Math.random(),
+          channel: chKey,
+          label: ch.label,
+          boutNum: ch.bouts.length + 1,
+          startOffsetMs: ch.currentBoutStartOffsetMs,
+          endOffsetMs: state.sessionElapsedMs,
+          durationMs: ch.currentBoutMs,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        };
+        ch.bouts.push(boutRecord);
+        state.allBouts.push(boutRecord);
+      }
+      ch.currentBoutMs = 0;
+    }
+
+    function startChannel(chKey) {
+      const ch = state.channels[chKey];
+      if (ch.running) return;
+      if (!state.sessionStartedAt) {
+        state.sessionStartedAt = new Date();
+        state.lastFrameTime = performance.now();
+        requestWakeLock();
+      }
+      ch.running = true;
+      ch.currentBoutMs = 0;
+      ch.currentBoutStartOffsetMs = state.sessionElapsedMs;
+    }
+
+    function handlePadTap(tappedKey, event) {
+      if (event && event.target && event.target.closest('button')) return;
+
+      const otherKey = tappedKey === 'A' ? 'B' : 'A';
+      const tappedCh = state.channels[tappedKey];
+      const otherCh = state.channels[otherKey];
+
+      if (state.concurrency === 'exclusive') {
+        if (tappedCh.running) {
+          // User tapped the side that is ALREADY running
+          if (state.activeTapBehavior === 'pause') {
+            finalizeBout(tappedKey);
+            playTone(440, 40, 'triangle');
+          } else if (state.activeTapBehavior === 'switch') {
+            finalizeBout(tappedKey);
+            startChannel(otherKey);
+            playTone(otherKey === 'A' ? 680 : 540, 35, 'sine');
+          } else {
+            // 'ignore' - require tapping the other side
+            return;
+          }
+        } else {
+          // User tapped the inactive side -> switch immediately!
+          if (otherCh.running) {
+            finalizeBout(otherKey);
+          }
+          startChannel(tappedKey);
+          playTone(tappedKey === 'A' ? 680 : 540, 35, 'sine');
+        }
+      } else {
+        // Concurrent (Independent) Mode: each pad toggles itself independently
+        if (tappedCh.running) {
+          finalizeBout(tappedKey);
+          playTone(440, 35, 'triangle');
+        } else {
+          startChannel(tappedKey);
+          playTone(tappedKey === 'A' ? 680 : 540, 35, 'sine');
+        }
+      }
+
+      updateUI();
+    }
+
+    function pauseBothPads() {
+      const wasRunning = state.channels.A.running || state.channels.B.running;
+      if (state.channels.A.running) finalizeBout('A');
+      if (state.channels.B.running) finalizeBout('B');
+      if (wasRunning) playTone(380, 45, 'triangle');
+      updateUI();
+    }
+
+    function undoLastBout() {
+      // If a bout is currently active, cancel the current active bout first
+      if (state.channels.A.running || state.channels.B.running) {
+        for (const k of ['A', 'B']) {
+          const ch = state.channels[k];
+          if (ch.running) {
+            ch.elapsedMs = Math.max(0, ch.elapsedMs - ch.currentBoutMs);
+            ch.currentBoutMs = 0;
+            ch.running = false;
+          }
+        }
+        showToast('Cancelled active bout');
+        updateUI();
+        return;
+      }
+
+      if (state.allBouts.length === 0) {
+        showToast('No bouts to undo');
+        return;
+      }
+
+      const lastBout = state.allBouts.pop();
+      const ch = state.channels[lastBout.channel];
+      ch.bouts.pop();
+      ch.elapsedMs = Math.max(0, ch.elapsedMs - lastBout.durationMs);
+      playTone(320, 45, 'sawtooth');
+      showToast(`Removed ${lastBout.channel} bout (${formatShortSeconds(lastBout.durationMs)})`);
+      updateUI();
+    }
+
+    // --- High-Precision Animation Tick Loop ---
+    function tickLoop(now) {
+      if (state.lastFrameTime !== null) {
+        const dt = Math.max(0, now - state.lastFrameTime);
+        const anyRunning = state.channels.A.running || state.channels.B.running;
+
+        // Advance session clock once session has started
+        if (state.sessionStartedAt !== null && (anyRunning || state.sessionElapsedMs > 0)) {
+          state.sessionElapsedMs += dt;
+        }
+
+        for (const key of ['A', 'B']) {
+          const ch = state.channels[key];
+          if (ch.running) {
+            ch.elapsedMs += dt;
+            ch.currentBoutMs += dt;
+
+            if (state.direction === 'down') {
+              const remMs = ch.countdownTargetMs - ch.elapsedMs;
+              if (remMs <= 0 && !ch.overtimeAlerted) {
+                ch.overtimeAlerted = true;
+                playTone(880, 180, 'square');
+                if (state.overtimeBehavior === 'stop') {
+                  ch.elapsedMs = ch.countdownTargetMs;
+                  finalizeBout(key);
+                }
+              }
+            }
+          }
+        }
+        updateUI();
+      }
+      state.lastFrameTime = now;
+      requestAnimationFrame(tickLoop);
+    }
+
+    // --- UI Rendering ---
+    function updateUI() {
+      const sessionMs = state.sessionElapsedMs;
+      const totalActiveMs = state.channels.A.elapsedMs + state.channels.B.elapsedMs;
+      const neutralMs = Math.max(0, sessionMs - Math.min(sessionMs, totalActiveMs));
+
+      for (const key of ['A', 'B']) {
+        const ch = state.channels[key];
+        const padEl = document.getElementById('pad' + key);
+        const clockEl = document.getElementById('clock' + key);
+        const statePill = document.getElementById('statePill' + key);
+        const boutPill = document.getElementById('boutPill' + key);
+        const statPrimaryLabel = document.getElementById('statPrimaryLabel' + key);
+        const statElapsed = document.getElementById('statElapsed' + key);
+        const statBouts = document.getElementById('statBouts' + key);
+        const statMean = document.getElementById('statMean' + key);
+        const statPct = document.getElementById('statPct' + key);
+        const progressEl = document.getElementById('progress' + key);
+
+        padEl.classList.toggle('running', ch.running);
+
+        let displayMs = ch.elapsedMs;
+        let isOvertime = false;
+        if (state.direction === 'down') {
+          displayMs = ch.countdownTargetMs - ch.elapsedMs;
+          if (displayMs < 0) isOvertime = true;
+          statPrimaryLabel.textContent = 'Elapsed';
+          statElapsed.textContent = formatPlainTime(ch.elapsedMs);
+        } else {
+          statPrimaryLabel.textContent = 'Remaining';
+          const rem = Math.max(0, ch.countdownTargetMs - ch.elapsedMs);
+          statElapsed.textContent = formatPlainTime(rem);
+        }
+
+        padEl.classList.toggle('overtime', isOvertime);
+        clockEl.innerHTML = formatClockHTML(displayMs);
+
+        if (ch.running) {
+          statePill.textContent = isOvertime ? 'Overtime' : 'Recording';
+          boutPill.textContent = `Current bout: ${formatShortSeconds(ch.currentBoutMs)}`;
+        } else {
+          statePill.textContent = ch.elapsedMs > 0 ? 'Paused' : 'Tap to Start';
+          const lastBout = ch.bouts.length > 0 ? ch.bouts[ch.bouts.length - 1].durationMs : 0;
+          boutPill.textContent = lastBout > 0 ? `Last bout: ${formatShortSeconds(lastBout)}` : 'Current bout: 0.0s';
+        }
+
+        const effectiveBoutCount = ch.bouts.length + (ch.running ? 1 : 0);
+        statBouts.textContent = String(effectiveBoutCount);
+
+        const meanMs = effectiveBoutCount > 0 ? (ch.elapsedMs / effectiveBoutCount) : 0;
+        statMean.textContent = formatShortSeconds(meanMs);
+
+        const pctSession = sessionMs > 0 ? Math.min(100, (ch.elapsedMs / sessionMs) * 100) : 0;
+        statPct.textContent = pctSession.toFixed(1) + '%';
+
+        if (state.direction === 'down' && ch.countdownTargetMs > 0) {
+          const pctRem = Math.max(0, Math.min(100, ((ch.countdownTargetMs - ch.elapsedMs) / ch.countdownTargetMs) * 100));
+          progressEl.style.width = pctRem + '%';
+        } else {
+          progressEl.style.width = pctSession + '%';
+        }
+      }
+
+      // Center dock session stats
+      document.getElementById('sessionTotalClock').textContent = formatPlainTime(sessionMs);
+      document.getElementById('sessionActiveClock').textContent = formatPlainTime(totalActiveMs);
+      document.getElementById('sessionNeutralClock').textContent = formatPlainTime(neutralMs);
+
+      const totalBouts = state.allBouts.length + (state.channels.A.running ? 1 : 0) + (state.channels.B.running ? 1 : 0);
+      document.getElementById('totalBoutsBadge').textContent = String(totalBouts);
+
+      // Pause Both button state
+      const anyRunning = state.channels.A.running || state.channels.B.running;
+      const pauseBtn = document.getElementById('btnPauseBoth');
+      const pauseLabel = document.getElementById('pauseBothLabel');
+      if (anyRunning) {
+        pauseBtn.classList.remove('paused-state');
+        pauseLabel.textContent = 'Pause Both (Silence)';
+      } else if (sessionMs > 0) {
+        pauseBtn.classList.add('paused-state');
+        pauseLabel.textContent = 'Both Paused (Silence)';
+      } else {
+        pauseBtn.classList.remove('paused-state');
+        pauseLabel.textContent = 'Ready (Tap a Pad)';
+      }
+
+      // Dominance Bar
+      if (sessionMs > 0) {
+        const wA = Math.min(100, (state.channels.A.elapsedMs / sessionMs) * 100);
+        const wB = Math.min(100, (state.channels.B.elapsedMs / sessionMs) * 100);
+        const wN = Math.max(0, 100 - wA - wB);
+        document.getElementById('domBarA').style.width = wA + '%';
+        document.getElementById('domBarNeutral').style.width = wN + '%';
+        document.getElementById('domBarB').style.width = wB + '%';
+      } else {
+        document.getElementById('domBarA').style.width = '50%';
+        document.getElementById('domBarNeutral').style.width = '0%';
+        document.getElementById('domBarB').style.width = '50%';
+      }
+    }
+
+    // --- Mode & Ergonomic Toggles ---
+    function setTimerDirection(dir) {
+      state.direction = dir;
+      document.getElementById('btnModeCountUp').classList.toggle('active', dir === 'up');
+      document.getElementById('btnModeCountdown').classList.toggle('active', dir === 'down');
+      playTone(520, 25, 'sine');
+      updateUI();
+    }
+
+    function toggleConcurrencyMode() {
+      state.concurrency = state.concurrency === 'exclusive' ? 'concurrent' : 'exclusive';
+      document.getElementById('selectConcurrency').value = state.concurrency;
+      syncTopBarBadges();
+      showToast(state.concurrency === 'exclusive' ? 'Chess Switch Mode (Mutual Exclusive)' : 'Concurrent Mode (Simultaneous Timing)');
+    }
+
+    function toggleFlipTop() {
+      state.flipTop = !state.flipTop;
+      document.getElementById('padA').classList.toggle('flipped', state.flipTop);
+      document.getElementById('btnFlipTop').classList.toggle('active-toggle', state.flipTop);
+    }
+
+    function toggleSound() {
+      state.soundEnabled = !state.soundEnabled;
+      document.getElementById('soundLabel').textContent = state.soundEnabled ? 'Sound On' : 'Muted';
+      document.getElementById('btnSound').classList.toggle('active-toggle', state.soundEnabled);
+      if (state.soundEnabled) playTone(660, 30, 'sine');
+    }
+
+    function syncTopBarBadges() {
+      const btn = document.getElementById('btnInteractionMode');
+      const lbl = document.getElementById('interactionModeLabel');
+      if (state.concurrency === 'exclusive') {
+        lbl.textContent = 'Chess Switch';
+        btn.classList.remove('active-toggle');
+      } else {
+        lbl.textContent = 'Concurrent';
+        btn.classList.add('active-toggle');
+      }
+    }
+
+    function promptRename(chKey, event) {
+      if (event) event.stopPropagation();
+      const current = state.channels[chKey].label;
+      const next = window.prompt(`Rename Side ${chKey}:`, current);
+      if (next && next.trim()) {
+        state.channels[chKey].label = next.trim();
+        document.getElementById('label' + chKey).textContent = next.trim();
+        document.getElementById('inputLabel' + chKey).value = next.trim();
+      }
+    }
+
+    function applyLabelPreset(labelA, labelB) {
+      state.channels.A.label = labelA;
+      state.channels.B.label = labelB;
+      document.getElementById('labelA').textContent = labelA;
+      document.getElementById('labelB').textContent = labelB;
+      document.getElementById('inputLabelA').value = labelA;
+      document.getElementById('inputLabelB').value = labelB;
+      showToast('Applied label preset');
+    }
+
+    function applyTimePreset(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      document.getElementById('cdMinA').value = mins;
+      document.getElementById('cdSecA').value = String(secs).padStart(2, '0');
+      document.getElementById('cdMinB').value = mins;
+      document.getElementById('cdSecB').value = String(secs).padStart(2, '0');
+      updateCountdownTargets();
+      setTimerDirection('down');
+      showToast(`Set countdown to ${mins}:${String(secs).padStart(2, '0')}`);
+    }
+
+    function updateCountdownTargets() {
+      const minA = Math.max(0, parseInt(document.getElementById('cdMinA').value || '0', 10));
+      const secA = Math.max(0, parseInt(document.getElementById('cdSecA').value || '0', 10));
+      const minB = Math.max(0, parseInt(document.getElementById('cdMinB').value || '0', 10));
+      const secB = Math.max(0, parseInt(document.getElementById('cdSecB').value || '0', 10));
+
+      state.channels.A.countdownTargetMs = (minA * 60 + secA) * 1000;
+      state.channels.B.countdownTargetMs = (minB * 60 + secB) * 1000;
+      state.channels.A.overtimeAlerted = false;
+      state.channels.B.overtimeAlerted = false;
+      updateUI();
+    }
+
+    function saveSettingsFromInputs() {
+      const lA = document.getElementById('inputLabelA').value.trim() || 'Speaker 1 (Person A)';
+      const lB = document.getElementById('inputLabelB').value.trim() || 'Speaker 2 (Person B)';
+      state.channels.A.label = lA;
+      state.channels.B.label = lB;
+      document.getElementById('labelA').textContent = lA;
+      document.getElementById('labelB').textContent = lB;
+
+      state.overtimeBehavior = document.getElementById('selectOvertimeBehavior').value;
+      state.activeTapBehavior = document.getElementById('selectActiveTapBehavior').value;
+      state.concurrency = document.getElementById('selectConcurrency').value;
+      syncTopBarBadges();
+      updateUI();
+    }
+
+    function confirmResetSession() {
+      if (state.sessionElapsedMs > 0) {
+        const ok = window.confirm('Reset current session timers and bout log?');
+        if (!ok) return;
+      }
+      resetSession();
+    }
+
+    function resetSession() {
+      state.sessionStartedAt = null;
+      state.sessionElapsedMs = 0;
+      state.allBouts = [];
+      for (const k of ['A', 'B']) {
+        state.channels[k].running = false;
+        state.channels[k].elapsedMs = 0;
+        state.channels[k].currentBoutMs = 0;
+        state.channels[k].currentBoutStartOffsetMs = 0;
+        state.channels[k].bouts = [];
+        state.channels[k].overtimeAlerted = false;
+      }
+      updateUI();
+      showToast('Session reset');
+    }
+
+    // --- Modals & Data Reporting ---
+    function openModal(id) {
+      if (id === 'dataModal') {
+        renderDataModal();
+      }
+      document.getElementById(id).classList.add('open');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    function backdropClose(e, id) {
+      if (e.target.id === id) closeModal(id);
+    }
+
+    function renderDataModal() {
+      const sessionMs = state.sessionElapsedMs;
+      const aMs = state.channels.A.elapsedMs;
+      const bMs = state.channels.B.elapsedMs;
+      const activeMs = aMs + bMs;
+      const neutralMs = Math.max(0, sessionMs - Math.min(sessionMs, activeMs));
+
+      const boutsA = state.channels.A.bouts.length + (state.channels.A.running ? 1 : 0);
+      const boutsB = state.channels.B.bouts.length + (state.channels.B.running ? 1 : 0);
+
+      const meanA = boutsA > 0 ? aMs / boutsA : 0;
+      const meanB = boutsB > 0 ? bMs / boutsB : 0;
+
+      const pctActiveA = activeMs > 0 ? (aMs / activeMs) * 100 : 0;
+      const pctActiveB = activeMs > 0 ? (bMs / activeMs) * 100 : 0;
+
+      const pctSessA = sessionMs > 0 ? (aMs / sessionMs) * 100 : 0;
+      const pctSessB = sessionMs > 0 ? (bMs / sessionMs) * 100 : 0;
+      const pctSessN = sessionMs > 0 ? (neutralMs / sessionMs) * 100 : 0;
+
+      const tbody = document.getElementById('summaryTableBody');
+      tbody.innerHTML = `
+        <tr>
+          <td style="color:var(--ch-a-accent);">${escapeHtml(state.channels.A.label)}</td>
+          <td>${formatPlainTime(aMs)}</td>
+          <td>${boutsA}</td>
+          <td>${formatShortSeconds(meanA)}</td>
+          <td>${pctActiveA.toFixed(1)}%</td>
+          <td>${pctSessA.toFixed(1)}%</td>
+        </tr>
+        <tr>
+          <td style="color:var(--ch-b-accent);">${escapeHtml(state.channels.B.label)}</td>
+          <td>${formatPlainTime(bMs)}</td>
+          <td>${boutsB}</td>
+          <td>${formatShortSeconds(meanB)}</td>
+          <td>${pctActiveB.toFixed(1)}%</td>
+          <td>${pctSessB.toFixed(1)}%</td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-secondary);">Unassigned / Silence</td>
+          <td>${formatPlainTime(neutralMs)}</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>${pctSessN.toFixed(1)}%</td>
+        </tr>
+        <tr>
+          <td>Total Session</td>
+          <td>${formatPlainTime(sessionMs)}</td>
+          <td>${boutsA + boutsB}</td>
+          <td>—</td>
+          <td>100%</td>
+          <td>100%</td>
+        </tr>
+      `;
+
+      document.getElementById('sessionTimestampLabel').textContent = state.sessionStartedAt
+        ? 'Started ' + state.sessionStartedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : 'Not started';
+
+      document.getElementById('boutLogCount').textContent = String(state.allBouts.length);
+      const listEl = document.getElementById('boutListContainer');
+      if (state.allBouts.length === 0) {
+        listEl.innerHTML = `<div style="color:var(--text-secondary); font-size:12px; text-align:center; padding:12px;">No completed bouts yet.</div>`;
+      } else {
+        listEl.innerHTML = state.allBouts.slice().reverse().map((b, idx) => {
+          const seqNum = state.allBouts.length - idx;
+          const tagClass = b.channel === 'A' ? 'bout-tag-a' : 'bout-tag-b';
+          return `
+            <div class="bout-item">
+              <span>#${seqNum} <span class="${tagClass}">${escapeHtml(b.label)}</span></span>
+              <span style="color:var(--text-secondary);">${formatPlainTime(b.startOffsetMs)} → ${formatPlainTime(b.endOffsetMs)}</span>
+              <strong>${formatShortSeconds(b.durationMs)}</strong>
+            </div>
+          `;
+        }).join('');
+      }
+
+      renderSavedHistoryList();
+    }
+
+    function buildSummaryText() {
+      const sessionMs = state.sessionElapsedMs;
+      const aMs = state.channels.A.elapsedMs;
+      const bMs = state.channels.B.elapsedMs;
+      const activeMs = aMs + bMs;
+      const neutralMs = Math.max(0, sessionMs - Math.min(sessionMs, activeMs));
+      const boutsA = state.channels.A.bouts.length + (state.channels.A.running ? 1 : 0);
+      const boutsB = state.channels.B.bouts.length + (state.channels.B.running ? 1 : 0);
+      const notes = document.getElementById('sessionNotesInput').value.trim();
+
+      const lines = [
+        `ABA Duration Observation Summary (${new Date().toLocaleString()})`,
+        notes ? `Notes: ${notes}` : null,
+        `Total Session Duration: ${formatPlainTime(sessionMs)}`,
+        `- ${state.channels.A.label}: ${formatPlainTime(aMs)} (${boutsA} bouts, Mean: ${formatShortSeconds(boutsA ? aMs/boutsA : 0)}, ${sessionMs ? ((aMs/sessionMs)*100).toFixed(1) : '0.0'}% of session)`,
+        `- ${state.channels.B.label}: ${formatPlainTime(bMs)} (${boutsB} bouts, Mean: ${formatShortSeconds(boutsB ? bMs/boutsB : 0)}, ${sessionMs ? ((bMs/sessionMs)*100).toFixed(1) : '0.0'}% of session)`,
+        `- Silence / Unassigned Time: ${formatPlainTime(neutralMs)} (${sessionMs ? ((neutralMs/sessionMs)*100).toFixed(1) : '0.0'}% of session)`
+      ].filter(Boolean);
+      return lines.join('\n');
+    }
+
+    async function copyReportToClipboard() {
+      const text = buildSummaryText();
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Summary copied to clipboard');
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Summary copied to clipboard');
+      }
+    }
+
+    function exportCSV() {
+      // Finalize any running bout so it's included in export
+      if (state.channels.A.running || state.channels.B.running) {
+        pauseBothPads();
+        renderDataModal();
+      }
+      const notes = (document.getElementById('sessionNotesInput').value || '').replace(/"/g, '""');
+      const rows = [
+        ['Session Date', new Date().toISOString()],
+        ['Timer Mode', state.direction === 'up' ? 'Count Up' : 'Countdown'],
+        ['Interaction Mode', state.concurrency],
+        ['Notes', `"${notes}"`],
+        ['Total Session Duration (s)', (state.sessionElapsedMs / 1000).toFixed(2)],
+        [],
+        ['Channel', 'Label', 'Total Duration (s)', 'Formatted Duration', 'Bout Count', 'Mean Bout (s)', '% of Session'],
+      ];
+
+      for (const k of ['A', 'B']) {
+        const ch = state.channels[k];
+        const bCount = ch.bouts.length;
+        const meanS = bCount > 0 ? (ch.elapsedMs / 1000 / bCount).toFixed(2) : '0.00';
+        const pct = state.sessionElapsedMs > 0 ? ((ch.elapsedMs / state.sessionElapsedMs) * 100).toFixed(1) : '0.0';
+        rows.push([
+          k,
+          `"${ch.label.replace(/"/g, '""')}"`,
+          (ch.elapsedMs / 1000).toFixed(2),
+          formatPlainTime(ch.elapsedMs),
+          bCount,
+          meanS,
+          pct + '%'
+        ]);
+      }
+
+      rows.push([]);
+      rows.push(['Bout #', 'Channel', 'Label', 'Start Offset (s)', 'End Offset (s)', 'Duration (s)', 'Wall Clock Time']);
+      state.allBouts.forEach((b, i) => {
+        rows.push([
+          i + 1,
+          b.channel,
+          `"${b.label.replace(/"/g, '""')}"`,
+          (b.startOffsetMs / 1000).toFixed(2),
+          (b.endOffsetMs / 1000).toFixed(2),
+          (b.durationMs / 1000).toFixed(2),
+          b.timestamp
+        ]);
+      });
+
+      const csvContent = rows.map(r => r.join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      a.href = url;
+      a.download = `aba-duration-session-${ts}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Downloaded CSV file');
+    }
+
+    // --- LocalStorage Session History ---
+    const STORAGE_KEY = 'aba_dual_timer_sessions_v1';
+
+    function getSavedSessions() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveSessionToHistory() {
+      if (state.sessionElapsedMs < 100) {
+        showToast('No session data to save yet');
+        return;
+      }
+      const sessions = getSavedSessions();
+      const record = {
+        id: Date.now(),
+        date: new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        notes: document.getElementById('sessionNotesInput').value.trim(),
+        sessionMs: state.sessionElapsedMs,
+        labelA: state.channels.A.label,
+        aMs: state.channels.A.elapsedMs,
+        boutsA: state.channels.A.bouts.length + (state.channels.A.running ? 1 : 0),
+        labelB: state.channels.B.label,
+        bMs: state.channels.B.elapsedMs,
+        boutsB: state.channels.B.bouts.length + (state.channels.B.running ? 1 : 0)
+      };
+      sessions.unshift(record);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions.slice(0, 50)));
+        renderSavedHistoryList();
+        showToast('Session saved to device');
+      } catch (e) {
+        showToast('Storage unavailable');
+      }
+    }
+
+    function renderSavedHistoryList() {
+      const sessions = getSavedSessions();
+      document.getElementById('savedSessionsCount').textContent = String(sessions.length);
+      const container = document.getElementById('savedSessionsContainer');
+      if (sessions.length === 0) {
+        container.innerHTML = `<div style="color:var(--text-secondary); font-size:12px; text-align:center; padding:8px;">No saved sessions on this device.</div>`;
+        return;
+      }
+      container.innerHTML = sessions.map(s => `
+        <div class="bout-item" style="flex-direction:column; align-items:flex-start; gap:4px;">
+          <div style="display:flex; justify-content:space-between; width:100%;">
+            <strong>${escapeHtml(s.date)} ${s.notes ? '• ' + escapeHtml(s.notes) : ''}</strong>
+            <span style="color:var(--text-secondary);">Total: ${formatPlainTime(s.sessionMs)}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; width:100%; font-size:11px;">
+            <span class="bout-tag-a">${escapeHtml(s.labelA)}: ${formatPlainTime(s.aMs)} (${s.boutsA} bouts)</span>
+            <span class="bout-tag-b">${escapeHtml(s.labelB)}: ${formatPlainTime(s.bMs)} (${s.boutsB} bouts)</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function clearSavedHistory() {
+      if (!window.confirm('Clear all saved sessions from this browser?')) return;
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (e) {}
+      renderSavedHistoryList();
+      showToast('Cleared saved history');
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    let toastTimeout = null;
+    function showToast(msg) {
+      const el = document.getElementById('toastBanner');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => el.classList.remove('show'), 2100);
+    }
+
+    // Initialize loop
+    requestAnimationFrame(tickLoop);
+    updateUI();
+  </script>
+</body>
+</html>
+aba_duration_timer.html
+Displaying aba_duration_timer.html.
