@@ -94,7 +94,7 @@
       border-bottom: 1px solid var(--border-subtle);
       gap: 10px;
       flex-shrink: 0;
-      z-index: 30;
+      z-index: 60;
     }
 
     .brand-group {
@@ -938,21 +938,21 @@
 
       <!-- Three-Dots Popover Menu -->
       <div class="dots-menu" id="dotsMenu" role="menu" onclick="event.stopPropagation()">
-        <button type="button" class="menu-item" onclick="menuOpenDataModal()">
+        <button type="button" class="menu-item" id="menuBtnLog" onclick="menuOpenDataModal()">
           <span class="menu-item-left">Log &amp; Export</span>
           <span class="menu-badge highlight" id="totalBoutsBadge">0 bouts</span>
         </button>
         <div class="menu-divider"></div>
-        <button type="button" class="menu-item" onclick="menuToggleConcurrency()">
+        <button type="button" class="menu-item" id="menuBtnMode" onclick="menuToggleConcurrency()">
           <span class="menu-item-left">Mode</span>
           <span class="menu-badge" id="interactionModeLabel">Chess Switch</span>
         </button>
-        <button type="button" class="menu-item" onclick="menuToggleFlipTop()">
+        <button type="button" class="menu-item" id="menuBtnFlip" onclick="menuToggleFlipTop()">
           <span class="menu-item-left">Flip Top Pad</span>
           <span class="menu-badge" id="flipTopBadge">Off</span>
         </button>
         <div class="menu-divider"></div>
-        <button type="button" class="menu-item" onclick="menuOpenSettingsModal()">
+        <button type="button" class="menu-item" id="menuBtnSetup" onclick="menuOpenSettingsModal()">
           <span class="menu-item-left">Setup</span>
           <span class="menu-badge">Config</span>
         </button>
@@ -2178,4 +2178,4 @@
 </body>
 </html>
 aba_duration_timer.html
-Zoomed out of item.
+Displaying aba_duration_timer.html.
